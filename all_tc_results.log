@@ -1,0 +1,229 @@
+🧪 Starting full test case suite...
+---------------------------------------
+
+🔹 Running TC1...
+
+
+========================
+🧪 Running Test Case: TC1
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test file for checking distributed object store integrity.
+--------------------------------------------------
+
+✅ Finished TC1
+---------------------------
+
+
+🔹 Running TC2...
+
+
+========================
+🧪 Running Test Case: TC2
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+🗑️ Deleted fragment_1.bin from node 1: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test f[MISSING FRAGMENT]________ed object store integrity.
+--------------------------------------------------
+
+✅ Finished TC2
+---------------------------
+
+
+🔹 Running TC3...
+
+
+========================
+🧪 Running Test Case: TC3
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+🗑️ Deleted fragment_0.bin from node 0: OK
+🗑️ Deleted fragment_1.bin from node 1: OK
+
+📄 Final reconstructed.txt content:
+
+[MISSING FRAGMENT]________[MISSING FRAGMENT]________ed object store integrity.
+--------------------------------------------------
+
+✅ Finished TC3
+---------------------------
+
+
+🔹 Running TC4...
+
+
+========================
+🧪 Running Test Case: TC4
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+🗑️ Deleted fragment_0.bin from node 0: OK
+🗑️ Deleted fragment_1.bin from node 1: OK
+🗑️ Deleted fragment_2.bin from node 2: OK
+
+📄 Final reconstructed.txt content:
+
+[MISSING FRAGMENT][MISSING FRAGMENT][MISSING FRAGMENT]
+--------------------------------------------------
+
+✅ Finished TC4
+---------------------------
+
+
+🔹 Running TC5...
+
+
+========================
+🧪 Running Test Case: TC5
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+⚠️ Overwrote fragment_2.bin on node 2: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test file for checking distribut[CORRUPT]_________________
+--------------------------------------------------
+
+✅ Finished TC5
+---------------------------
+
+
+🔹 Running TC6...
+
+
+========================
+🧪 Running Test Case: TC6
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+⚠️ Overwrote fragment_1.bin on node 1: OK
+⚠️ Overwrote fragment_2.bin on node 2: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test f[CORRUPT]_________________[CORRUPT]_________________
+--------------------------------------------------
+
+✅ Finished TC6
+---------------------------
+
+
+🔹 Running TC7...
+
+
+========================
+🧪 Running Test Case: TC7
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+⚠️ Overwrote fragment_0.bin on node 0: OK
+⚠️ Overwrote fragment_1.bin on node 1: OK
+⚠️ Overwrote fragment_2.bin on node 2: OK
+
+📄 Final reconstructed.txt content:
+
+[CORRUPT][CORRUPT][CORRUPT]
+--------------------------------------------------
+
+✅ Finished TC7
+---------------------------
+
+
+🔹 Running TC8...
+
+
+========================
+🧪 Running Test Case: TC8
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+🗑️ Deleted fingerprint_1.txt from node 1: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test f[MISSING FINGERPRINT]_____ed object store integrity.
+--------------------------------------------------
+
+✅ Finished TC8
+---------------------------
+
+
+🔹 Running TC9...
+
+
+========================
+🧪 Running Test Case: TC9
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+🗑️ Deleted fragment_1.bin from node 1: OK
+🗑️ Deleted fingerprint_1.txt from node 1: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test f[MISSING FINGERPRINT]_____ed object store integrity.
+--------------------------------------------------
+
+✅ Finished TC9
+---------------------------
+
+
+🔹 Running TC10...
+
+
+========================
+🧪 Running Test Case: TC10
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+⚠️ Overwrote fingerprint_1.txt on node 1: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test f[CORRUPT]_________________ed object store integrity.
+--------------------------------------------------
+
+✅ Finished TC10
+---------------------------
+
+
+🔹 Running TC11...
+
+
+========================
+🧪 Running Test Case: TC11
+========================
+🔁 Reset node 0: OK
+🔁 Reset node 1: OK
+🔁 Reset node 2: OK
+🗑️ Deleted fragment_1.bin from node 1: OK
+⚠️ Overwrote fragment_2.bin on node 2: OK
+
+📄 Final reconstructed.txt content:
+
+Hi this is a sample test f[CORRUPT]_________________[CORRUPT]_________________
+--------------------------------------------------
+
+✅ Finished TC11
+---------------------------
+

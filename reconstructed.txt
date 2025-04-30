@@ -1,1 +1,1 @@
-Hi this is a sample test f[MISSING FRAGMENT]________ed object store integrity.
+Hi this is a sample test f[CORRUPT]_________________[CORRUPT]_________________
