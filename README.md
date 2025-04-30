@@ -1,112 +1,75 @@
-# 🧠 Distributed Object Store with Integrity
+# 🧪 Distributed Object Store with Integrity
 
-This project implements a **fault-tolerant distributed storage system** that:
-- Splits and distributes a file across multiple remote nodes.
-- Generates fingerprints to ensure integrity.
-- Supports test case simulation with fragment corruption/missing cases.
-- Reconstructs the original file using verified fragments.
-- Provides a **simple CLI interface** for test execution.
+This project simulates a distributed storage system with integrity verification. It splits a file into fragments, uploads them to remote nodes, computes fingerprints, and supports fault scenarios like fragment loss or corruption. The system verifies integrity and reconstructs the original file accordingly.
 
----
-
-## 📁 Directory Structure
+## 📁 Project Structure
 
 ```
-DistributedObjectStoreWithIntegrity/
-├── scripts/
-│   ├── interface.py          # CLI UI
-│   ├── erasure_coding.py     # Split & upload fragments
-│   ├── fingerprinting.py     # Fingerprint generation
-│   ├── verify_fragments.py   # Fingerprint validation
-│   ├── reconstruct_file.py   # Rebuild file from fragments
-│   └── crypto_utils.py       # Encryption helpers (optional)
-├── test_cases/
-│   └── run_tc.py             # All test case automation
-├── remote/
-│   ├── remote_utils.py       # Remote SCP/SSH helpers
-│   └── remote_config.py      # Remote IPs and SSH key
-├── fragments/                # (Auto) Encrypted fragments
-├── fingerprints/             # (Auto) Fingerprints
-├── reconstruction_temp/      # (Auto) Temp download folder
-├── reconstructed.txt         # ✅ Output file
-└── simple_text.txt           # 📝 Input file
+.
+├── scripts/                  # Main logic: encoding, verification, reconstruction
+├── remote/                  # Remote config and upload utilities
+├── fragments/               # Local fragment directory
+├── fingerprints/            # Local fingerprint directory
+├── test_cases/              # Test case runner and test mutation logic
+├── reconstruction_temp/     # Temporary files for reconstruction
+├── encryption/              # Key management for encryption layer
+├── simple_text.txt          # Input file to split and upload
+└── reconstructed.txt        # Final output file after reconstruction
 ```
 
----
+## ▶️ Running the Interface
+
+To launch the CLI interface:
+```bash
+python3 interface.py
+```
+
+Options:
+- `[1] Run a test case` – Provide a test case ID (e.g., TC1–TC11)
+- `[2] Exit` – Quit the interface
+
+## 🧪 Run All Test Cases at Once
+
+To run all test cases and compare outputs:
+```bash
+bash test_cases/run_all_tests.sh
+```
+
+## 📊 Test Case Behavior Reference
+
+Each test simulates a specific fault condition. Here's what to expect in the final `reconstructed.txt`:
+
+| Test Case | Description | Expected Output |
+|-----------|-------------|-----------------|
+| TC1 | No errors | Full original text |
+| TC2 | Missing fragment 1 | Placeholder `[MISSING FRAGMENT]` in the middle |
+| TC3 | Missing fragments 0 and 1 | Two placeholders at the beginning |
+| TC4 | All fragments missing | Three placeholders |
+| TC5 | Fragment 2 corrupted | Placeholder `[CORRUPT]` at the end |
+| TC6 | Fragments 1 & 2 corrupted | Two `[CORRUPT]` placeholders at the end |
+| TC7 | All fragments corrupted | All placeholders `[CORRUPT]` |
+| TC8 | Missing fingerprint 1 | Placeholder `[MISSING FINGERPRINT]` in the middle |
+| TC9 | Missing both fragment & fingerprint 1 | Placeholder `[MISSING FINGERPRINT]` in the middle |
+| TC10 | Wrong fingerprint for fragment 1 | Placeholder `[CORRUPT]` in the middle |
+| TC11 | Fragment 1 missing, fragment 2 corrupted | One `[CORRUPT]` and one `[MISSING FRAGMENT]` |
+
+## 🔐 Security Layer
+
+- Files are encrypted using Fernet before upload.
+- Fingerprints are computed on the encrypted binary.
+
+## 🧼 Cleanup
+
+After each test case, all temporary files (local and remote) are reset for a clean run.
 
 ## ✅ Requirements
 
-- Python 3.7+
-- `rich` for colorful CLI
-
-Install dependencies:
+- Python 3.6+
+- `cryptography` and `rich` packages
 ```bash
-pip install rich
+pip install cryptography rich
 ```
 
----
+## 📬 Contact
 
-## 🚀 How to Run
-
-### 1. Run the CLI Interface
-
-```bash
-python3 scripts/interface.py
-```
-
-### 2. Use the Menu
-
-You'll see:
-```
-🔧 Distributed Object Store - Main Menu
-[1] Run a test case
-[2] Exit
-```
-
-### 3. Run a Test Case
-
-Type a test case ID like:
-```
-TC1    # All valid
-TC2    # Missing fragment
-...
-TC11   # Mixed corruption
-```
-
-It will:
-- Reset nodes
-- Run upload, corruption, fingerprint, verification
-- Print final `reconstructed.txt` content
-
----
-
-## 🧪 Example Output
-
-```
-✅ Fragment 0 is VALID.
-❌ Fragment 1 is missing!
-✅ Fragment 2 is VALID.
-🔄 Replacing fragment 1 with placeholder: [MISSING FRAGMENT]
-
-✅ File reconstructed as 'reconstructed.txt'
-```
-
----
-
-## 🛡️ Security (Optional Add-On)
-
-You can enable **fragment encryption** using `cryptography.Fernet` in `crypto_utils.py`.
-
----
-
-## 📌 Notes
-
-- Update `remote/remote_config.py` with your actual EC2 IPs and `.pem` key path.
-- Fragments and fingerprints are stored both locally and on remote nodes.
-- Run `scripts/test_cases/run_tc.py TCx` manually if you want CLI-free automation.
-
----
-
-## 🙌 Author
-
-Project developed as part of a fault-tolerant systems course.
+Project by: Aditi Arun Nadig
