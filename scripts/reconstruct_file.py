@@ -2,6 +2,8 @@ import os
 import subprocess
 import hashlib
 import sys
+from crypto_utils import load_key
+from cryptography.fernet import Fernet
 
 # Add the project root directory to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -34,6 +36,9 @@ def reconstruct_file():
     fragment_status = {}
     fragment_size = None
 
+    key = load_key()
+    fernet = Fernet(key)
+
     for i in range(NUM_NODES):
         fetch_fragment_and_fingerprint(i)
 
@@ -52,17 +57,21 @@ def reconstruct_file():
 
         if frag_exists and fp_exists:
             with open(frag_path, 'rb') as f:
-                data = f.read()
+                encrypted_data = f.read()
             with open(fp_path, 'r') as f:
                 expected_fp = f.read().strip()
 
-            actual_fp = generate_fingerprint(data)
+            actual_fp = generate_fingerprint(encrypted_data)
             if actual_fp == expected_fp:
                 print(f"✅ Fragment {i} is VALID.")
-                status["valid"] = True
-                status["data"] = data
-                if fragment_size is None:
-                    fragment_size = len(data)
+                try:
+                    decrypted_data = fernet.decrypt(encrypted_data)
+                    status["valid"] = True
+                    status["data"] = decrypted_data
+                    if fragment_size is None:
+                        fragment_size = len(decrypted_data)
+                except Exception as e:
+                    print(f"❌ Failed to decrypt fragment {i}: {str(e)}")
             else:
                 print(f"⚠️ Fragment {i} is CORRUPTED!")
         else:

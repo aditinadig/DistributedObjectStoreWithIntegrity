@@ -1,6 +1,7 @@
 import subprocess
 import time
 import os
+import shutil
 from tc_utils import delete_file, overwrite_file, reset_all_nodes
 
 def try_delete_local(path):
@@ -39,7 +40,8 @@ def run_test_case(tc_id):
     if tc_id == "TC1":
         pass
     elif tc_id == "TC2":
-        delete_file(1, "fragment_1.bin")
+        run_shell("python3 scripts/fingerprinting.py")    # Generate + upload valid fingerprints
+        delete_file(1, "fragment_1.bin")                  # Now simulate TC2 (delete remote fragment)
         try_delete_local("fragments/fragment_1.bin")
     elif tc_id == "TC3":
         delete_file(0, "fragment_0.bin")
@@ -99,7 +101,6 @@ def run_test_case(tc_id):
         try: os.remove(f"fingerprints/fingerprint_{i}.txt")
         except FileNotFoundError: pass
 
-    import shutil
     if os.path.exists("reconstruction_temp"):
         shutil.rmtree("reconstruction_temp")
 
