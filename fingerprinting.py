@@ -15,6 +15,11 @@ def fingerprint_fragments():
         fragment_path = f"{DATA_DIR}/node_{i}/fragment_{i}.bin"
         fingerprint_path = f"{DATA_DIR}/node_{i}/fingerprint_{i}.txt"
 
+        # Check if fragment exists
+        if not os.path.exists(fragment_path):
+            print(f"⚠️ Skipping missing fragment {i} (File not found)")
+            continue  # Skip to the next fragment
+        
         # Read the fragment
         with open(fragment_path, 'rb') as f:
             fragment_data = f.read()
@@ -26,7 +31,7 @@ def fingerprint_fragments():
         with open(fingerprint_path, 'w') as f:
             f.write(fingerprint)
         
-        print(f"Fingerprint for fragment {i} stored.")
+        print(f"✅ Fingerprint for fragment {i} stored.")
 
 if __name__ == "__main__":
     fingerprint_fragments()

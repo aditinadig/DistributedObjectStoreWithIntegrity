@@ -1,84 +1,66 @@
-import os
-import reedsolo
-import hashlib
+import cv2
+import numpy as np
+import time
+from mujoco import mj
 
-# Configuration
-NUM_NODES = 3  # Total storage nodes
-DATA_SHARDS = 2  # Minimum number of fragments needed
-PARITY_SHARDS = NUM_NODES - DATA_SHARDS  # Extra redundancy
-DATA_DIR = "distributed_storage"  # Storage directory
-OUTPUT_FILE = "reconstructed.txt"  # Output file
+def get_camera_image(model, data, cam_name, width=160, height=120):
+    # Simulated function to get camera image with reduced resolution
+    # Real implementation depends on mjcf or mujoco-py bindings
+    # Placeholder for actual camera image retrieval
+    pass
 
-def generate_fingerprint(data):
-    """Generates a SHA-256 fingerprint for the given data."""
-    return hashlib.sha256(data).hexdigest()
+def detect_color_position(img, target_color):
+    # Simulated color detection function
+    # Placeholder for actual color detection logic
+    pass
 
-def verify_fragments():
-    """Checks if stored fragments match their fingerprints and returns valid ones."""
-    valid_fragments = {}
+def main_loop():
+    frame_skip = 0
+    target_color = (0, 0, 255)  # Example target color (red)
 
-    for i in range(NUM_NODES):
-        fragment_path = f"{DATA_DIR}/node_{i}/fragment_{i}.bin"
-        fingerprint_path = f"{DATA_DIR}/node_{i}/fingerprint_{i}.txt"
+    while True:
+        # Outer simulation loop
 
-        if not os.path.exists(fragment_path) or not os.path.exists(fingerprint_path):
-            print(f"❌ Fragment {i} is missing!")
-            continue
+        # Detect target world position from MuJoCo
+        target_world_pos = color_detection(model, data, target_color)
+        if target_world_pos is not None:
+            direction_vec = target_world_pos[:2] - data.body(model.body_name2id("base")).xpos[:2]
+            direction_vec /= np.linalg.norm(direction_vec)
 
-        # Read fragment
-        with open(fragment_path, 'rb') as f:
-            fragment_data = f.read()
+        # Capture image and detect color once per outer loop
+        img = get_camera_image(model, data, "head_cam")
+        pixel_pos = detect_color_position(img, target_color)
 
-        # Read stored fingerprint
-        with open(fingerprint_path, 'r') as f:
-            stored_fingerprint = f.read().strip()
+        # Inner loop runs at 5x speed
+        start_time = time.time()
+        while time.time() - start_time < 1.0 / 5.0:
+            if target_world_pos is not None:
+                dist = np.linalg.norm(target_world_pos[:2] - data.body(model.body_name2id("base")).xpos[:2])
+                if dist > 0.1:
+                    data.mocap_pos[0][:2] += 0.001 * direction_vec
+                    quat = np.array([0.05, 0, 0, 0.9987])  # Slight tilt forward (quaternion approximation)
 
-        # Compute fingerprint again
-        computed_fingerprint = generate_fingerprint(fragment_data)
+            # Safety guard to maintain base height
+            data.mocap_pos[0][2] = 0.49
 
-        if computed_fingerprint == stored_fingerprint:
-            print(f"✅ Fragment {i} is VALID.")
-            valid_fragments[i] = fragment_data
-        else:
-            print(f"⚠️ Fragment {i} is CORRUPTED!")
+            # Advance physics each frame
+            mj.mj_step(model, data)
 
-    return valid_fragments
+            # robot control code here
 
-def reconstruct_file():
-    """Reconstructs the original file using valid fragments."""
-    valid_fragments = verify_fragments()
+            pass
 
-    if len(valid_fragments) < DATA_SHARDS:
-        print("\n❌ Not enough valid fragments to reconstruct the file!")
-        return False
+        # Only show camera output every few frames to speed up sim
+        frame_skip += 1
+        if frame_skip % 10 == 0:
+            img = get_camera_image(model, data, "head_cam")
+            pixel_pos = detect_color_position(img, target_color)
+            if pixel_pos is not None:
+                print(f"{target_color} detected at pixel {pixel_pos}")
+                cv2.circle(img, tuple(pixel_pos), 5, (0, 0, 255), -1)
+                cv2.imshow("Camera View", img)
+                cv2.waitKey(1)
 
-    # Sort valid fragments by index
-    sorted_fragments = [valid_fragments[i] for i in sorted(valid_fragments.keys())]
-    encoded_data = b''.join(sorted_fragments)  # Reassemble encoded data
-
-    # Reed-Solomon Decoder
-    rs = reedsolo.RSCodec(PARITY_SHARDS)
-
-    print(f"\n🔍 Reassembled Encoded Data (Hex): {encoded_data.hex()}")
-    print(f"🔍 Reassembled Data Length: {len(encoded_data)}")
-
-    try:
-        reconstructed_data = rs.decode(encoded_data)  # Decode to original file data
-        if isinstance(reconstructed_data, tuple):  
-            reconstructed_data = reconstructed_data[0]  # Extract first item if tuple
-    except reedsolo.ReedSolomonError:
-        print("\n❌ Reconstruction failed: Too many errors to correct!")
-        return False
-
-    # ✅ Remove padding after decoding
-    reconstructed_data = reconstructed_data.rstrip(b'\x00')
-
-    # Write reconstructed data to file
-    with open(OUTPUT_FILE, 'wb') as f:
-        f.write(reconstructed_data)  # Save cleaned data
-
-    print(f"\n✅ File successfully reconstructed as '{OUTPUT_FILE}'")
-    return True
-
-if __name__ == "__main__":
-    reconstruct_file()
+        # Commented out to speed up simulation
+        # cv2.imshow("Camera View", img)
+        # cv2.waitKey(1)

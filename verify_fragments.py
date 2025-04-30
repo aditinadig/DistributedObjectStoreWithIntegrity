@@ -34,7 +34,7 @@ def verify_fragments():
 
         if computed_fingerprint == stored_fingerprint:
             print(f"✅ Fragment {i} is VALID.")
-            valid_fragments.append(fragment_path)
+            valid_fragments.append(i)
         else:
             print(f"⚠️ Fragment {i} is CORRUPTED!")
 
@@ -43,7 +43,7 @@ def verify_fragments():
 if __name__ == "__main__":
     valid_fragments = verify_fragments()
 
-    if len(valid_fragments) >= 2:  # Ensure we have enough valid fragments
+    if len(valid_fragments) >= 1:  # Ensure we have at least one valid fragment since no parity
         print("\n✅ Enough valid fragments available for reconstruction.")
     else:
         print("\n❌ Not enough valid fragments! Reconstruction might fail.")
