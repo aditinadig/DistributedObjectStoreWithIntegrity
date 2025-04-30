@@ -1,112 +1,112 @@
-# **Distributed Object Store with Integrity**
+# 🧠 Distributed Object Store with Integrity
 
-This project implements a **fault-tolerant distributed storage system** using **erasure coding** and **integrity verification**.
-
----
-
-## **🔹 Setup Instructions**
-
-### **1️⃣ Install Dependencies**
-Ensure you have Python installed (Python 3.8+ recommended). Then, install the required packages:
-```sh
-python3 -m venv venv
-source venv/bin/activate  # On macOS/Linux
-# For Windows, use: venv\Scripts\activate
-pip install reedsolo pycryptodome
-```
+This project implements a **fault-tolerant distributed storage system** that:
+- Splits and distributes a file across multiple remote nodes.
+- Generates fingerprints to ensure integrity.
+- Supports test case simulation with fragment corruption/missing cases.
+- Reconstructs the original file using verified fragments.
+- Provides a **simple CLI interface** for test execution.
 
 ---
 
-### **2️⃣ Set Up Storage Nodes**
-Run the following command to create the necessary storage folders:
-```sh
-python setup_storage.py
+## 📁 Directory Structure
+
 ```
-This will create a **distributed_storage/** directory with **node_0/**, **node_1/**, etc.
-
----
-
-### **3️⃣ Create a Large Text File (for Testing)**
-#### **Option 1: Download a Public Domain Book**
-```sh
-curl -o large_text.txt https://www.gutenberg.org/cache/epub/1342/pg1342.txt
-```
-
-#### **Option 2: Generate a Large Repetitive Text File**
-```sh
-yes "Lorem ipsum dolor sit amet, consectetur adipiscing elit." | head -c 1M > large_text.txt
-```
-This creates a **1MB text file** filled with repeating text.
-
-#### **Option 3: Duplicate a Small File Multiple Times**
-```sh
-cat example.txt example.txt example.txt > large_text.txt
+DistributedObjectStoreWithIntegrity/
+├── scripts/
+│   ├── interface.py          # CLI UI
+│   ├── erasure_coding.py     # Split & upload fragments
+│   ├── fingerprinting.py     # Fingerprint generation
+│   ├── verify_fragments.py   # Fingerprint validation
+│   ├── reconstruct_file.py   # Rebuild file from fragments
+│   └── crypto_utils.py       # Encryption helpers (optional)
+├── test_cases/
+│   └── run_tc.py             # All test case automation
+├── remote/
+│   ├── remote_utils.py       # Remote SCP/SSH helpers
+│   └── remote_config.py      # Remote IPs and SSH key
+├── fragments/                # (Auto) Encrypted fragments
+├── fingerprints/             # (Auto) Fingerprints
+├── reconstruction_temp/      # (Auto) Temp download folder
+├── reconstructed.txt         # ✅ Output file
+└── simple_text.txt           # 📝 Input file
 ```
 
 ---
 
-### **4️⃣ Encode the File with Erasure Coding**
-Run the encoding process to split the file across nodes:
-```sh
-python erasure_coding.py
+## ✅ Requirements
+
+- Python 3.7+
+- `rich` for colorful CLI
+
+Install dependencies:
+```bash
+pip install rich
 ```
-This will **split** `large_text.txt` into **multiple fragments** and store them across nodes.
 
 ---
 
-### **5️⃣ Generate Fingerprints for Integrity Verification**
-```sh
-python fingerprinting.py
+## 🚀 How to Run
+
+### 1. Run the CLI Interface
+
+```bash
+python3 scripts/interface.py
 ```
-This ensures that each fragment is **fingerprinted for integrity checks**.
+
+### 2. Use the Menu
+
+You'll see:
+```
+🔧 Distributed Object Store - Main Menu
+[1] Run a test case
+[2] Exit
+```
+
+### 3. Run a Test Case
+
+Type a test case ID like:
+```
+TC1    # All valid
+TC2    # Missing fragment
+...
+TC11   # Mixed corruption
+```
+
+It will:
+- Reset nodes
+- Run upload, corruption, fingerprint, verification
+- Print final `reconstructed.txt` content
 
 ---
 
-### **6️⃣ Verify Data Integrity**
-Check if stored fragments match their fingerprints:
-```sh
-python verify_fragments.py
-```
-If everything is correct, you should see:
+## 🧪 Example Output
+
 ```
 ✅ Fragment 0 is VALID.
-✅ Fragment 1 is VALID.
+❌ Fragment 1 is missing!
 ✅ Fragment 2 is VALID.
-✅ Enough valid fragments available for reconstruction.
+🔄 Replacing fragment 1 with placeholder: [MISSING FRAGMENT]
+
+✅ File reconstructed as 'reconstructed.txt'
 ```
 
 ---
 
-### **7️⃣ Reconstruct the File from Fragments**
-```sh
-python reconstruct_file.py
-```
-If successful, you should see:
-```
-✅ File successfully reconstructed as 'reconstructed.txt'
-```
+## 🛡️ Security (Optional Add-On)
+
+You can enable **fragment encryption** using `cryptography.Fernet` in `crypto_utils.py`.
 
 ---
 
-### **8️⃣ Verify the Reconstructed File**
-Check if the file was properly restored:
-```sh
-ls -lh large_text.txt reconstructed.txt  # Compare file sizes
-diff large_text.txt reconstructed.txt    # Should show no output
-head reconstructed.txt                    # Check the first few lines
-tail reconstructed.txt                    # Check the last few lines
-```
+## 📌 Notes
+
+- Update `remote/remote_config.py` with your actual EC2 IPs and `.pem` key path.
+- Fragments and fingerprints are stored both locally and on remote nodes.
+- Run `scripts/test_cases/run_tc.py TCx` manually if you want CLI-free automation.
 
 ---
 
-## **🔹 Notes**
-- If a fragment is missing or corrupt, **reconstruction should still work as long as at least 2 valid fragments exist**.
-- If reconstruction fails, debug using:
-```sh
-python verify_fragments.py
-python reconstruct_file.py
-```
-- For larger files, **increase the number of nodes** in `setup_storage.py` and `erasure_coding.py`.
+## 🙌 Author
 
-🚀 **Your fault-tolerant storage system is now ready!** 🚀
-
+Project developed as part of a fault-tolerant systems course.
