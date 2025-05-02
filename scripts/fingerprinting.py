@@ -1,59 +1,41 @@
-# fingerprinting.py
-
 import os
 import hashlib
 import sys
-import subprocess
 
-# Add the project root directory to the system path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from remote.remote_utils import send_fragment  # Reuse for fingerprint upload
+from remote.remote_utils import send_fragment
 from remote.remote_config import REMOTE_IPS, KEY_PATH
 
-NUM_NODES = 3
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-
-def remote_fragment_exists(node_id, fragment_name):
-    """Checks if the fragment exists remotely on the given node."""
-    cmd = f"test -f ~/storage_node/fragments/{fragment_name} && echo EXISTS"
-    result = subprocess.run(
-        ["ssh", "-i", KEY_PATH, REMOTE_IPS[node_id], cmd],
-        capture_output=True,
-        text=True
-    )
-    return "EXISTS" in result.stdout
+NUM_SHARDS = 5
+FRAG_DIR = "fragments"
+FP_DIR = "fingerprints"
 
 def generate_fingerprint(data):
-    """Generates SHA-256 fingerprint of given data."""
     return hashlib.sha256(data).hexdigest()
 
 def fingerprint_fragments():
-    """Generates fingerprint for each local fragment and uploads it to the correct remote node."""
-    os.makedirs("fingerprints", exist_ok=True)  # <- Ensure fingerprints directory exists
-    for i in range(NUM_NODES):
-        frag_path = f"fragments/fragment_{i}.bin"
-        fingerprint_path = f"fingerprints/fingerprint_{i}.txt"
+    os.makedirs(FP_DIR, exist_ok=True)
 
-        if not os.path.exists(frag_path):
-            print(f"⚠️ Skipping fragment {i}: file not found locally.")
+    for i in range(NUM_SHARDS):
+        frag_file = os.path.join(FRAG_DIR, f"fragment_{i:03d}")
+        fp_file = os.path.join(FP_DIR, f"fingerprint_{i:03d}.txt")
+
+        if not os.path.exists(frag_file):
+            print(f"⚠️ Skipping fragment {i:03d}: not found.")
             continue
 
-        # Read fragment and compute fingerprint
-        with open(frag_path, 'rb') as f:
-            data = f.read()
-        fingerprint = generate_fingerprint(data)
+        with open(frag_file, "rb") as f:
+            encrypted_data = f.read()
 
-        # Write fingerprint to a local text file
-        with open(fingerprint_path, 'w') as f:
+        fingerprint = generate_fingerprint(encrypted_data)
+
+        with open(fp_file, "w") as f:
             f.write(fingerprint)
-        print(f"✅ Fingerprint for fragment {i} stored.")
 
-        # Upload fingerprint to corresponding remote node
-        if remote_fragment_exists(i, f"fragment_{i}.bin"):
-            send_fragment(i, fingerprint_path)
-        else:
-            print(f"⚠️ Skipping fingerprint upload for fragment {i}: fragment missing on remote node.")
+        print(f"✅ Fingerprint for fragment {i:03d} stored.")
+        send_fragment(i, fp_file)
 
 if __name__ == "__main__":
     fingerprint_fragments()

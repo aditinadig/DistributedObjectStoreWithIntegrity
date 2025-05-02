@@ -33,77 +33,109 @@ def run_test_case(tc_id):
     reset_all_nodes()
     time.sleep(1)
 
-    # Step 1: Create and upload original fragments
+    # Step 1: Encode and upload original data
     run_shell("python3 scripts/erasure_coding.py")
 
-    # Step 2: Inject error conditions (mutate remote state)
+    # Step 2: Modify based on test case
     if tc_id == "TC1":
         pass
+
     elif tc_id == "TC2":
-        run_shell("python3 scripts/fingerprinting.py")    # Generate + upload valid fingerprints
-        delete_file(1, "fragment_1.bin")                  # Now simulate TC2 (delete remote fragment)
-        try_delete_local("fragments/fragment_1.bin")
+        run_shell("python3 scripts/fingerprinting.py")
+        delete_file(1, "fragment_1.bin")
+        delete_file(1, "fingerprint_1.txt")
+
     elif tc_id == "TC3":
-        delete_file(0, "fragment_0.bin")
-        delete_file(1, "fragment_1.bin")
-        try_delete_local("fragments/fragment_0.bin")
-        try_delete_local("fragments/fragment_1.bin")
+        run_shell("python3 scripts/fingerprinting.py")
+        for i in [0, 1]:
+            delete_file(i, f"fragment_{i}.bin")
+            delete_file(i, f"fingerprint_{i}.txt")
+
     elif tc_id == "TC4":
-        delete_file(0, "fragment_0.bin")
-        delete_file(1, "fragment_1.bin")
-        delete_file(2, "fragment_2.bin")
-        try_delete_local("fragments/fragment_0.bin")
-        try_delete_local("fragments/fragment_1.bin")
-        try_delete_local("fragments/fragment_2.bin")
+        run_shell("python3 scripts/fingerprinting.py")
+        for i in [0, 1, 2]:
+            delete_file(i, f"fragment_{i}.bin")
+            delete_file(i, f"fingerprint_{i}.txt")
+
     elif tc_id == "TC5":
-        overwrite_file(2, "fragment_2.bin", "XXXXX\n")
+        run_shell("python3 scripts/fingerprinting.py")
+        overwrite_file(2, "fragment_2.bin", "tampered content")
+
     elif tc_id == "TC6":
-        overwrite_file(1, "fragment_1.bin", "BAD1\n")
-        overwrite_file(2, "fragment_2.bin", "BAD2\n")
+        run_shell("python3 scripts/fingerprinting.py")
+        overwrite_file(1, "fragment_1.bin", "BAD DATA 1")
+        overwrite_file(2, "fragment_2.bin", "BAD DATA 2")
+
     elif tc_id == "TC7":
-        overwrite_file(0, "fragment_0.bin", "C0\n")
-        overwrite_file(1, "fragment_1.bin", "C1\n")
-        overwrite_file(2, "fragment_2.bin", "C2\n")
+        run_shell("python3 scripts/fingerprinting.py")
+        for i in [0, 1, 2]:
+            overwrite_file(i, f"fragment_{i}.bin", f"BAD{i}")
+
     elif tc_id == "TC8":
         run_shell("python3 scripts/fingerprinting.py")
-        delete_file(1, "fingerprint_1.txt")
-        run_all_pipeline()
-        show_result()
-        return
-    elif tc_id == "TC9":
-        run_shell("python3 scripts/fingerprinting.py")  # fingerprint first
-        delete_file(1, "fragment_1.bin")                 # then delete fragment
-        delete_file(1, "fingerprint_1.txt")              # and fingerprint
-        run_all_pipeline()
-        show_result()
-        return
-    elif tc_id == "TC10":
-        run_shell("python3 scripts/fingerprinting.py")
-        overwrite_file(1, "fingerprint_1.txt", "1234567890abcdef")
-        run_all_pipeline()
-        show_result()
-        return
-    elif tc_id == "TC11":
         delete_file(1, "fragment_1.bin")
-        overwrite_file(2, "fragment_2.bin", "MIXED_ERROR\n")
+        overwrite_file(2, "fragment_2.bin", "junk")
 
-    # Step 3: Run fingerprinting AFTER corruption
-    run_shell("python3 scripts/fingerprinting.py")
+    elif tc_id == "TC9":
+        run_shell("python3 scripts/fingerprinting.py")
+        for i in range(1, 5):
+            overwrite_file(i, f"fragment_{i}.bin", "corrupted")
+    
+    elif tc_id == "TC10":
+        for i in range(5):
+            delete_file(i, f"fingerprint_{i}.txt")
 
-    # Step 4: Verify and reconstruct
-    run_all_pipeline()
+    elif tc_id == "TC11":
+        run_shell("python3 scripts/fingerprinting.py")
+        delete_file(3, "fragment_3.bin")
+        delete_file(4, "fragment_4.bin")
+
+    elif tc_id == "TC12":
+        # Simulate upload of only 3 fragments by deleting before fingerprinting
+        delete_file(3, "fragment_3.bin")
+        delete_file(4, "fragment_4.bin")
+        run_shell("python3 scripts/fingerprinting.py")
+
+    elif tc_id == "TC13":
+        for i in range(1, 5):
+            delete_file(i, f"fragment_{i}.bin")
+            delete_file(i, f"fingerprint_{i}.txt")
+        run_shell("python3 scripts/fingerprinting.py")
+
+    elif tc_id == "TC14":
+        run_shell("python3 scripts/fingerprinting.py")
+        overwrite_file(1, "fragment_1.bin", "completely wrong file")
+
+    elif tc_id == "TC15":
+        run_shell("python3 scripts/fingerprinting.py")
+        overwrite_file(1, "fingerprint_1.txt", "deadbeef1")
+        overwrite_file(2, "fingerprint_2.txt", "deadbeef2")
+
+    elif tc_id == "TC16":
+        run_shell("python3 scripts/fingerprinting.py")
+        for i in [0, 2, 4]:
+            overwrite_file(i, f"fingerprint_{i}.txt", "forged")
+
+    elif tc_id == "TC17":
+        run_shell("python3 scripts/fingerprinting.py")  # fingerprints before corruption
+        overwrite_file(1, "fragment_1.bin", "error1")
+        overwrite_file(2, "fragment_2.bin", "error2")
+
+    else:
+        print(f"❌ Unknown test case: {tc_id}")
+        return
+
+    # Step 3: Run pipeline
+    out = run_all_pipeline()
     show_result()
 
-        # Step 5: Local cleanup after test
-    for i in range(3):
-        try: os.remove(f"fragments/fragment_{i}.bin")
-        except FileNotFoundError: pass
-        try: os.remove(f"fingerprints/fingerprint_{i}.txt")
-        except FileNotFoundError: pass
-
+    # Step 4: Cleanup
     if os.path.exists("reconstruction_temp"):
         shutil.rmtree("reconstruction_temp")
+    try: os.remove("reconstructed.txt")
+    except: pass
 
+    
 if __name__ == "__main__":
     import sys
     if len(sys.argv) != 2:
