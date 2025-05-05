@@ -25,11 +25,13 @@ def resolve_remote_path(filename):
         return filename
 
 def delete_file(node_id, filename):
-    """Deletes a specific file from a node."""
-    remote_path = resolve_remote_path(filename)
-    cmd = f"rm ~/storage_node/{remote_path}"
-    out, err = run_remote_command(node_id, cmd)
-    print(f"🗑️ Deleted {filename} from node {node_id}: {err or 'OK'}")
+    remote = REMOTE_IPS[node_id]
+    cmd = f"ssh -i {KEY_PATH} {remote} 'rm ~/storage_node/fragments/{filename}'"
+    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    if result.returncode == 0:
+        print(f"🗑️ Deleted {filename} from node {node_id}: OK")
+    else:
+        print(f"🗑️ Deleted {filename} from node {node_id}: {result.stderr.strip()}")
 
 def overwrite_file(node_id, filename, content="CORRUPTED\n"):
     """Overwrites a file on a node with fake content (to simulate corruption)."""
